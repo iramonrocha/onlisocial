@@ -6,10 +6,10 @@ let client: DynamoDBClient
 export const getDynamoDBClient = (): DynamoDBClient => {
     if (!client) {
         client = new DynamoDBClient({
-            region: getEnv("REGION_AWS", "private"),
+            region: getEnv("AWS_REGION", "private"),
             credentials: {
-                accessKeyId: getEnv("ACCESS_KEY_ID_AWS", "private"),
-                secretAccessKey: getEnv("SECRET_ACCESS_KEY_AWS", "private")
+                accessKeyId: getEnv("AWS_ACCESS_KEY_ID", "private"),
+                secretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", "private")
             }
         })
     }

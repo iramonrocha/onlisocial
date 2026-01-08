@@ -11,39 +11,43 @@
                 {{ loading ? 'Verificando...' : 'Continuar' }}
             </button>
         </form>
-    </div>
 
-    <div v-if="step === 'login'">
-        <p class="mensagem sucesso">
-            Usuário já cadastrado. Faça login 👇
-        </p>
-        <NuxtLink to="login">
-            <button>
-                Login
-            </button>
-        </NuxtLink>
-    </div>
+        <div v-if="step === 'login'">
+            <p class="mensagem sucesso">
+                Usuário já cadastrado. Faça login 👇
+            </p>
 
-    <div v-if="step === 'register'">
+            <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
 
-        <p class="mensagem sucesso">
-            Complete seu cadastro para continuar ganhando seguidores 👇
-        </p>
+            <NuxtLink to="login">
+                <button>
+                    Login
+                </button>
+            </NuxtLink>
+        </div>
 
-        <NuxtLink to="register">
-            <button>
-                Registrar
-            </button>
-        </NuxtLink>
-    </div>
+        <div v-if="step === 'register'">
 
-    <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
+            <p class="mensagem sucesso">
+                Complete seu cadastro para continuar ganhando seguidores 👇
+            </p>
 
-    <button @click="criarPix">Pagar com PIX</button>
+            <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
 
-    <div v-if="pix">
-        <img :src="pix.qr_codes[0].links[0].href" />
-        <p>{{ pix.qr_codes[0].text }}</p>
+            <NuxtLink to="register">
+                <button>
+                    Registrar
+                </button>
+            </NuxtLink>
+        </div>
+
+        <button @click="criarPix">Pagar com PIX</button>
+
+        <div v-if="pix">
+            <img :src="pix.qr_codes[0].links[0].href" />
+            <p>{{ pix.qr_codes[0].text }}</p>
+        </div>
+
     </div>
 </template>
 

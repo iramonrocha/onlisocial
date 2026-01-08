@@ -1,7 +1,28 @@
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
+import { getId } from '~/utils/createId'
+import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
+import { Profiles } from '~/aws/dynamodb/entities/instagram/profiles'
+import { verifyToken } from '@/utils/verifyToken'
+import AWS from 'aws-sdk'
+import axios from 'axios'
 
 export default defineEventHandler(async (event) => {
+
+    // Configurações do S3
+    const s3 = new AWS.S3({
+        region: process.env.REGION_AWS,
+        accessKeyId: process.env.ACCESS_KEY_ID_AWS,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY_AWS,
+    })
+    
+    const token = getCookie(event, 'token')
+    if (!token) return null
+
+    const decoded = verifyToken(token)
+    if (!decoded?.id) return null
+
+    const { id } = decoded
 
     const cookies =
         [{
@@ -199,6 +220,43 @@ export default defineEventHandler(async (event) => {
         const name = document.querySelector('section > div > div > span')?.innerText || ''
         const image = document.querySelector('img')?.src || ''
         return { name, image }
+    })
+
+    await browser.close()
+
+    let s3ImageUrl = ''
+    if (userData.image) {
+        // Baixa a imagem do Instagram
+        const response = await axios.get(userData.image, { responseType: 'arraybuffer' })
+        const buffer = Buffer.from(response.data, 'binary')
+
+        // Gera o nome do arquivo
+        const imageName = `instagram-profiles/ramon-${Date.now()}.jpg`
+
+        // Faz upload para o S3
+        const uploadResult = await s3
+            .upload({
+                Bucket: process.env.AWS_S3_BUCKET_NAME!,
+                Key: imageName,
+                Body: buffer,
+                ContentType: 'image/jpeg',
+                ACL: 'public-read', // Se quiser que fique público
+            })
+            .promise()
+
+        s3ImageUrl = uploadResult.Location
+    }
+
+    const userId = getId()
+
+    await putItem(Profiles, {
+        id: userId,
+        user_id: id,
+        name: userData.name,
+        image: s3ImageUrl, // Salva a URL do S3 no DynamoDB
+        status: true,
+        username: 'ramon',
+        cost_per_follower: 50,
     })
 
     return userData

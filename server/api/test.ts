@@ -5,10 +5,10 @@ export default defineEventHandler(async () => {
 
   try {
     const s3 = new S3Client({
-      region: config.awsRegion,
+      region: config.regionAws,
       credentials: {
-        accessKeyId: config.awsAccessKeyId,
-        secretAccessKey: config.awsSecretAccessKey
+        accessKeyId: config.accessKeyIdAws,
+        secretAccessKey: config.secretAccessKeyAws
       }
     })
 

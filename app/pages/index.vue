@@ -37,11 +37,6 @@
         </NuxtLink>
     </div>
 
-    <!-- MENSAGEM DE ERRO -->
-    <p v-if="message && step !== 'register' && step !== 'login'" class="mensagem erro">
-        {{ message }}
-    </p>
-
     <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
 
     <button @click="criarPix">Pagar com PIX</button>

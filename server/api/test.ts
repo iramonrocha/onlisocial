@@ -1,35 +1,39 @@
-import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3'
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
 
 export default defineEventHandler(async () => {
-  const config = useRuntimeConfig()
+    const config = useRuntimeConfig()
 
-  try {
-    const s3 = new S3Client({
-      region: config.regionAws,
-      credentials: {
-        accessKeyId: config.accessKeyIdAws,
-        secretAccessKey: config.secretAccessKeyAws
-      }
-    })
+    try {
+        const s3 = new S3Client({
+            region: config.regionAws,
+            credentials: {
+                accessKeyId: config.accessKeyIdAws,
+                secretAccessKey: config.secretAccessKeyAws
+            }
+        })
 
-    // Testa se o bucket existe e se tem permissão
-    await s3.send(
-      new HeadBucketCommand({
-        Bucket: config.s3BucketAws
-      })
-    )
+        const result = await s3.send(
+            new ListObjectsV2Command({
+                Bucket: config.s3BucketAws,
+                MaxKeys: 1
+            })
+        )
 
-    return {
-      success: true,
-      message: 'Acesso à AWS S3 funcionando corretamente 🚀'
+        return {
+            success: true,
+            message: 'S3 OK',
+            bucket: config.s3BucketAws,
+            region: config.regionAws,
+            objects: result.Contents?.length ?? 0
+        }
+    } catch (error: any) {
+        console.error('AWS ERROR FULL:', error)
+
+        return {
+            success: false,
+            name: error.name,
+            message: error.message,
+            code: error.$metadata?.httpStatusCode
+        }
     }
-  } catch (error: any) {
-    console.error('Erro AWS:', error)
-
-    return {
-      success: false,
-      message: 'Erro ao acessar AWS S3',
-      error: error.message
-    }
-  }
 })

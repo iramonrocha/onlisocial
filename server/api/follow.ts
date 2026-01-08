@@ -201,6 +201,7 @@ export default defineEventHandler(async (event) => {
 
     const page = await browser.newPage()
 
+    // 1️⃣ User-Agent MOBILE (antes de tudo)
     await page.setUserAgent(
         'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
         'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
@@ -246,7 +247,7 @@ export default defineEventHandler(async (event) => {
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
@@ -287,8 +288,6 @@ export default defineEventHandler(async (event) => {
         const followedUser = followedItemsList[0];
 
         const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
-
-        console.log(followed)
 
         // REMOVE pontos de quem está logado
         await updateItem(Users, {

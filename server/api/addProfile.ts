@@ -181,10 +181,10 @@ export default defineEventHandler(async (event) => {
         ]
 
     const browser = await puppeteer.launch({
-        args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
+        args: puppeteer.defaultArgs({ args: chromium.args, headless: false }),
         defaultViewport: null,
         executablePath: await chromium.executablePath(),
-        headless: "shell",
+        headless: false,
     });
 
     const page = await browser.newPage()

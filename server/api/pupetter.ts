@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer-core';
 
 export default defineEventHandler(async (event) => {
 
-    const cookies =
+        const cookies =
         [{
             name: 'csrftoken',
             value: 'zdXajZ8MjFwnVjnH5VtVGz',
@@ -158,15 +158,22 @@ export default defineEventHandler(async (event) => {
         ]
 
     const browser = await puppeteer.launch({
-        args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
+        args: puppeteer.defaultArgs({ args: chromium.args, headless: false }),
         defaultViewport: null,
         executablePath: await chromium.executablePath(),
-        headless: "shell",
+        headless: false,
     });
 
     const page = await browser.newPage()
 
     await page.setCookie(...cookies)
+
+    await page.setRequestInterception(true);
+    page.on('request', req => {
+        const blocked = ['image', 'stylesheet', 'font', 'media'];
+        if (blocked.includes(req.resourceType())) req.abort();
+        else req.continue();
+    });
 
     await page.goto(`https://instagram.com/rmn.roocha`, { waitUntil: 'networkidle2' })
 

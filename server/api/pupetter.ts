@@ -193,9 +193,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // 4️⃣ Navegação
-    await page.goto('https://instagram.com/rmn.roocha', {
-        waitUntil: 'domcontentloaded',
-    });
+    await page.goto('https://instagram.com/rmn.roocha', { waitUntil: 'networkidle2' })
 
     const userData = await page.evaluate(() => {
         const name = document.querySelector('section > div > div > span')?.innerText || ''

@@ -1,6 +1,5 @@
 import { getId } from '~/utils/createId'
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer'
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { updateItem } from '~/aws/dynamodb/entities/actions/updateItem'
 import { getItem } from '~/aws/dynamodb/entities/actions/getItem'
@@ -186,11 +185,10 @@ export default defineEventHandler(async (event) => {
         ]
 
     const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-    });
+        headless: false,
+        defaultViewport: null,
+        userDataDir: './tmp',
+    })
 
     const page = await browser.newPage()
 

@@ -157,18 +157,9 @@ export default defineEventHandler(async (event) => {
         }
         ]
 
-    const viewport = {
-        deviceScaleFactor: 1,
-        hasTouch: false,
-        height: 1080,
-        isLandscape: true,
-        isMobile: false,
-        width: 1920,
-    };
-
     const browser = await puppeteer.launch({
         args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
-        defaultViewport: viewport,
+        defaultViewport: null,
         executablePath: await chromium.executablePath(),
         headless: "shell",
     });
@@ -179,12 +170,14 @@ export default defineEventHandler(async (event) => {
 
     await page.goto(`https://instagram.com/rmn.roocha`, { waitUntil: 'networkidle2' })
 
+    const pageTitle = await page.title();
+
     const userData = await page.evaluate(() => {
-        const name = document.querySelector('section > div > div > span')?.innerText || ''
+        const name = document.querySelector('section > div > span')?.innerText || ''
         const image = document.querySelector('img')?.src || ''
         return { name, image }
     })
 
-    return userData
+    return { userData, pageTitle }
 }
 )

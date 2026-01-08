@@ -237,7 +237,7 @@ export default defineEventHandler(async (event) => {
         // Faz upload para o S3
         const uploadResult = await s3
             .upload({
-                Bucket: process.env.AWS_S3_BUCKET_NAME!,
+                Bucket: config.AWS_S3_BUCKET_NAME!,
                 Key: imageName,
                 Body: buffer,
                 ContentType: 'image/jpeg',

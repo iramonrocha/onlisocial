@@ -1,6 +1,6 @@
 import { getId } from '~/utils/createId'
 import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { updateItem } from '~/aws/dynamodb/entities/actions/updateItem'
 import { getItem } from '~/aws/dynamodb/entities/actions/getItem'

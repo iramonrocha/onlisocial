@@ -6,9 +6,12 @@ import { getId } from '~/utils/createId'
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { Profiles } from '~/aws/dynamodb/entities/instagram/profiles'
 import { verifyToken } from '@/utils/verifyToken'
+import { queryUser_id } from '~/aws/dynamodb/tables/actions/queryUser_id'
 
 export default defineEventHandler(async (event) => {
 
+    const username = "rainer"
+    
     const token = getCookie(event, 'token')
     if (!token) return null
 
@@ -17,15 +20,17 @@ export default defineEventHandler(async (event) => {
 
     const { id } = decoded
 
-    const config = useRuntimeConfig()
+    // busca todos os profiles que pertencem ao usuário logado
+    const profiles = await queryUser_id(id)
 
-    const s3 = new AWS.S3({
-        region: config.AWS_REGION,
-        credentials: {
-            accessKeyId: config.AWS_ACCESS_KEY_ID,
-            secretAccessKey: config.AWS_SECRET_ACCESS_KEY
-        }
-    })
+    if (!profiles || profiles.length === 0) {
+        return { success: false, message: 'Nenhum profile encontrado para este usuário.' }
+    }
+
+    // extrai apenas os usernames
+    const usernamesToCheck = profiles.map(p => p.username)
+
+    const config = useRuntimeConfig()
 
     const cookies =
         [{
@@ -216,50 +221,54 @@ export default defineEventHandler(async (event) => {
             : req.continue();
     });
 
-    // 4️⃣ Navegação
-    await page.goto('https://instagram.com/rmn.roocha', { waitUntil: 'networkidle2' })
+    await page.goto(`https://instagram.com/${username}`, {
+        waitUntil: "networkidle2",
+    });
 
-    const userData = await page.evaluate(() => {
-        const name = document.querySelector('section > div > div > span')?.innerText || ''
-        const image = document.querySelector('img')?.src || ''
-        return { name, image }
-    })
 
-    let s3ImageUrl = ''
-    if (userData.image) {
-        // Baixa a imagem do Instagram
-        const response = await axios.get(userData.image, { responseType: 'arraybuffer' })
-        const buffer = Buffer.from(response.data, 'binary')
+    // Clicando no link de seguidores
+    const followersLinkSelector = `a[href="/${username}/followers/"]`;
+    await page.waitForSelector(followersLinkSelector);
+    await page.click(followersLinkSelector);
 
-        // Gera o nome do arquivo
-        const imageName = `instagram-profiles/rmnrocha-${Date.now()}.jpg`
+    // Espera a modal de seguidores abrir
+    const followersModalSelector = 'div[role="dialog"]';
+    await page.waitForSelector(followersModalSelector);
 
-        // Faz upload para o S3
-        const uploadResult = await s3
-            .upload({
-                Bucket: config.AWS_S3_BUCKET_NAME!,
-                Key: imageName,
-                Body: buffer,
-                ContentType: 'image/jpeg',
-                ACL: 'public-read', // Se quiser que fique público
-            })
-            .promise()
+    // Espera o input de pesquisa estar disponível
+    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    await page.waitForSelector(searchInputSelector);
 
-        s3ImageUrl = uploadResult.Location
+    let foundUsername: string | null = null;
+
+    for (const usernameToCheck of usernamesToCheck) {
+
+        // Limpa o input
+        await page.click(searchInputSelector, { clickCount: 3 });
+        await page.keyboard.press('Backspace');
+
+        // Digita o username
+        await page.type(searchInputSelector, usernameToCheck, { delay: 150 });
+
+        // Aguarda o Instagram atualizar a lista
+        await new Promise(resolve => setTimeout(resolve, 3500));
+
+        // Captura os usernames visíveis
+        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+
+        const capturedUsernames = await page.$$eval(
+            usernameSelector,
+            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        );
+
+        if (capturedUsernames.includes(usernameToCheck)) {
+            foundUsername = usernameToCheck;
+            break; // para o loop assim que encontrar
+        }
     }
 
-    const userId = getId()
+    const found = Boolean(foundUsername);
 
-    await putItem(Profiles, {
-        id: userId,
-        user_id: id,
-        name: userData.name,
-        image: s3ImageUrl, // Salva a URL do S3 no DynamoDB
-        status: true,
-        username: 'rmn.rocha',
-        cost_per_follower: 50,
-    })
-
-    return userData
+    return { found, foundUsername }
 }
 )

@@ -219,7 +219,7 @@ export default defineEventHandler(async (event) => {
     await page.goto(`https://instagram.com/${username}`, { waitUntil: 'networkidle2' })
 
     const userData = await page.evaluate(() => {
-        const name = document.querySelector('section > div > div > span')?.innerText || ''
+        const name = document.querySelector('section > div > span')?.innerText || ''
         const image = document.querySelector('img')?.src || ''
         return { name, image }
     })

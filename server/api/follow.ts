@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     // extrai apenas os usernames
     const usernamesToCheck = profiles.map(p => p.username)
 
-        const cookies =
+    const cookies =
         [{
             name: 'csrftoken',
             value: 'zdXajZ8MjFwnVjnH5VtVGz',
@@ -186,21 +186,36 @@ export default defineEventHandler(async (event) => {
         ]
 
     const browser = await puppeteer.launch({
-        args: puppeteer.defaultArgs({ args: chromium.args, headless: false }),
-        defaultViewport: null,
         executablePath: await chromium.executablePath(),
-        headless: false,
+        headless: true,
+        args: [
+            ...chromium.args,
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-features=site-per-process',
+        ],
     });
 
     const page = await browser.newPage()
+
+    // 1️⃣ User-Agent MOBILE (antes de tudo)
+    await page.setUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
+        'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+        'Version/16.0 Mobile/15E148 Safari/604.1'
+    );
 
     await page.setCookie(...cookies)
 
     await page.setRequestInterception(true);
     page.on('request', req => {
-        const blocked = ['image', 'stylesheet', 'font', 'media'];
-        if (blocked.includes(req.resourceType())) req.abort();
-        else req.continue();
+        const blocked = ['image', 'stylesheet', 'font', 'media', 'other'];
+        blocked.includes(req.resourceType())
+            ? req.abort()
+            : req.continue();
     });
 
     await page.goto(`https://instagram.com/${username}`, {

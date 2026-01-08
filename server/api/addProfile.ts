@@ -1,5 +1,6 @@
 import { getId } from '~/utils/createId'
-import puppeteer from 'puppeteer'
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { Profiles } from '~/aws/dynamodb/entities/instagram/profiles'
 import { verifyToken } from '@/utils/verifyToken'
@@ -179,11 +180,21 @@ export default defineEventHandler(async (event) => {
         }
         ]
 
+    const viewport = {
+        deviceScaleFactor: 1,
+        hasTouch: false,
+        height: 1080,
+        isLandscape: true,
+        isMobile: false,
+        width: 1920,
+    };
+
     const browser = await puppeteer.launch({
-        headless: false,
-        defaultViewport: null,
-        userDataDir: './tmp',
-    })
+        args: puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }),
+        defaultViewport: viewport,
+        executablePath: await chromium.executablePath(),
+        headless: "shell",
+    });
 
     const page = await browser.newPage()
 

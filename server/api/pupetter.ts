@@ -1,21 +1,14 @@
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
+import AWS from 'aws-sdk'
+import axios from 'axios'
 import { getId } from '~/utils/createId'
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { Profiles } from '~/aws/dynamodb/entities/instagram/profiles'
 import { verifyToken } from '@/utils/verifyToken'
-import AWS from 'aws-sdk'
-import axios from 'axios'
 
 export default defineEventHandler(async (event) => {
 
-    // Configurações do S3
-    const s3 = new AWS.S3({
-        region: process.env.REGION_AWS,
-        accessKeyId: process.env.ACCESS_KEY_ID_AWS,
-        secretAccessKey: process.env.SECRET_ACCESS_KEY_AWS,
-    })
-    
     const token = getCookie(event, 'token')
     if (!token) return null
 
@@ -23,6 +16,16 @@ export default defineEventHandler(async (event) => {
     if (!decoded?.id) return null
 
     const { id } = decoded
+
+    const config = useRuntimeConfig()
+
+    const s3 = new AWS.S3({
+        region: config.AWS_REGION,
+        credentials: {
+            accessKeyId: config.AWS_ACCESS_KEY_ID,
+            secretAccessKey: config.AWS_SECRET_ACCESS_KEY
+        }
+    })
 
     const cookies =
         [{
@@ -222,8 +225,6 @@ export default defineEventHandler(async (event) => {
         return { name, image }
     })
 
-    await browser.close()
-
     let s3ImageUrl = ''
     if (userData.image) {
         // Baixa a imagem do Instagram
@@ -231,7 +232,7 @@ export default defineEventHandler(async (event) => {
         const buffer = Buffer.from(response.data, 'binary')
 
         // Gera o nome do arquivo
-        const imageName = `instagram-profiles/ramon-${Date.now()}.jpg`
+        const imageName = `instagram-profiles/rmnrocha-${Date.now()}.jpg`
 
         // Faz upload para o S3
         const uploadResult = await s3
@@ -255,7 +256,7 @@ export default defineEventHandler(async (event) => {
         name: userData.name,
         image: s3ImageUrl, // Salva a URL do S3 no DynamoDB
         status: true,
-        username: 'ramon',
+        username: 'rmn.rocha',
         cost_per_follower: 50,
     })
 

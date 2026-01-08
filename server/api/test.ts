@@ -5,16 +5,16 @@ export default defineEventHandler(async () => {
 
     try {
         const s3 = new S3Client({
-            region: config.regionAws,
+            region: config.awsRegion,
             credentials: {
-                accessKeyId: config.accessKeyIdAws,
-                secretAccessKey: config.secretAccessKeyAws
+                accessKeyId: config.awsAccessKeyId,
+                secretAccessKey: config.awsSecretAccessKey
             }
         })
 
         const result = await s3.send(
             new ListObjectsV2Command({
-                Bucket: config.s3BucketAws,
+                Bucket: config.awsS3Bucket,
                 MaxKeys: 1
             })
         )
@@ -22,8 +22,8 @@ export default defineEventHandler(async () => {
         return {
             success: true,
             message: 'S3 OK',
-            bucket: config.s3BucketAws,
-            region: config.regionAws,
+            bucket: config.awsS3Bucket,
+            region: config.awsRegion,
             objects: result.Contents?.length ?? 0
         }
     } catch (error: any) {

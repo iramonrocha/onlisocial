@@ -1,10 +1,10 @@
 export default defineEventHandler(() => {
-    const config = useRuntimeConfig()
+  const config = useRuntimeConfig()
 
-    return {
-        awsRegion: config.regionAws,
-        awsS3Bucket: config.s3BucketAws,
-        accessKeyLength: config.accessKeyIdAws?.length ?? 0,
-        secretKeyLength: config.secretAccessKeyAws?.length ?? 0
-    }
+  return {
+    awsRegion: config.awsRegion,
+    awsS3Bucket: config.awsS3Bucket,
+    accessKeyLength: config.awsAccessKeyId?.length ?? 0,
+    secretKeyLength: config.awsSecretAccessKey?.length ?? 0
+  }
 })

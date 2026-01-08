@@ -15,7 +15,7 @@ export default defineEventHandler(async () => {
     // Testa se o bucket existe e se tem permissão
     await s3.send(
       new HeadBucketCommand({
-        Bucket: config.awsS3Bucket
+        Bucket: config.s3BucketAws
       })
     )
 

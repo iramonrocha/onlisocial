@@ -1,6 +1,6 @@
 import { getId } from '~/utils/createId'
 import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
 import { updateItem } from '~/aws/dynamodb/entities/actions/updateItem'
 import { getItem } from '~/aws/dynamodb/entities/actions/getItem'
@@ -201,7 +201,6 @@ export default defineEventHandler(async (event) => {
 
     const page = await browser.newPage()
 
-    // 1️⃣ User-Agent MOBILE (antes de tudo)
     await page.setUserAgent(
         'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
         'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
@@ -288,6 +287,8 @@ export default defineEventHandler(async (event) => {
         const followedUser = followedItemsList[0];
 
         const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
+
+        console.log(followed)
 
         // REMOVE pontos de quem está logado
         await updateItem(Users, {

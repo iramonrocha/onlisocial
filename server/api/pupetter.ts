@@ -1,5 +1,5 @@
 import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import AWS from 'aws-sdk'
 import axios from 'axios'
 import { getId } from '~/utils/createId'

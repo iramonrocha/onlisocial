@@ -1,7 +1,7 @@
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 
-export const handler = async (event) => {
+export default defineEventHandler(async (event) => {
 
     const viewport = {
         deviceScaleFactor: 1,
@@ -27,3 +27,4 @@ export const handler = async (event) => {
 
     return pageTitle
 }
+)

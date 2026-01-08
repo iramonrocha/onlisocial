@@ -78,6 +78,7 @@
                             {{ u.confirming ? 'Confirmando...' : 'Confirmar' }}
                         </button>
                     </div>
+                    <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
                 </div>
             </div>
         </div>
@@ -498,6 +499,18 @@ async function confirmFollow(u: FollowUser) {
             username: u.username,
             cost_per_follower: u.cost_per_follower
         })
+
+        if (res.message === 'Perfil não encontrado') {
+            setAlert('danger', res.message)
+        }
+
+        if (res.message === 'Perfil encontrado e salvo.') {
+            setAlert('success', res.message)
+        }
+
+        if (res.message === 'Usuário não encontrado no Instagram.') {
+            setAlert('success', res.message)
+        }
 
         if (res.success) {
             u.followed = true

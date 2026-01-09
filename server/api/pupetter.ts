@@ -183,7 +183,7 @@ export default defineEventHandler(async (event) => {
         }
         ]
 
-const browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
         executablePath: await chromium.executablePath(),
         headless: true,
         args: [
@@ -199,12 +199,12 @@ const browser = await puppeteer.launch({
 
     const page = await browser.newPage()
 
-            await page.setUserAgent(
+    await page.setUserAgent(
         'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
         'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
         'Version/16.0 Mobile/15E148 Safari/604.1'
     );
-    
+
     await page.setCookie(...cookies)
 
     await page.setRequestInterception(true);
@@ -224,16 +224,23 @@ const browser = await puppeteer.launch({
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
-    
     // Espera a modal de seguidores abrir
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
+
+    const titulo = await page.title()
+
+    await browser.close()
+
+    return {
+        titulo,
+    }
 
     // Espera o input de pesquisa estar disponível
     const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
     await page.waitForSelector(searchInputSelector);
 
-await browser.close()
+    await browser.close()
 
     return searchInputSelector
 });

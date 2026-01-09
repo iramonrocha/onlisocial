@@ -227,14 +227,11 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    const capturedUsernames = await page.$$eval(
-        'div > div > div > span > div > a > div > div > span',
-        links =>
-            links
-                .map(a => a.getAttribute('href'))
-                .filter(href => href && href !== '/')
-                .map(href => href.replace(/\//g, ''))
-    );
+    // pega o HTML do modal
+const modalHTML = await page.$eval(
+  followersModalSelector,
+  el => el.innerHTML
+);
 
     // const capturedUsernames = await page.$$eval(
     //     'div > div > div > div > span > div > a > div > div > span',
@@ -272,7 +269,7 @@ export default defineEventHandler(async (event) => {
     await browser.close()
 
     return {
-        capturedUsernames
+        modalHTML
     }
 
 });

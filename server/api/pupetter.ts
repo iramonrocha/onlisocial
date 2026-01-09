@@ -223,13 +223,13 @@ export default defineEventHandler(async (event) => {
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
-    // // Espera a modal de seguidores abrir
-    // const followersModalSelector = 'div[role="dialog"]';
-    // await page.waitForSelector(followersModalSelector);
+    // Espera a modal de seguidores abrir
+    const followersModalSelector = 'div[role="dialog"]';
+    await page.waitForSelector(followersModalSelector);
 
-    // // Espera o input de pesquisa estar disponível
-    // const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
-    // await page.waitForSelector(searchInputSelector);
+    // Espera o input de pesquisa estar disponível
+    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    await page.waitForSelector(searchInputSelector);
 
     // await page.waitForSelector('div > div > div > div > span > div > a > div > div > span');
 
@@ -269,7 +269,7 @@ export default defineEventHandler(async (event) => {
     await browser.close()
 
     return {
-        followersLinkSelector
+        searchInputSelector
     }
 
 });

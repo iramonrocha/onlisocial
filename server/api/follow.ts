@@ -239,15 +239,17 @@ export default defineEventHandler(async (event) => {
 
     for (const usernameToCheck of usernamesToCheck) {
 
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        
 // Limpa o input
         await page.click(searchInputSelector, { clickCount: 3 });
         await page.keyboard.press('Backspace');
 
         // Digita o username
-        await page.type(searchInputSelector, usernameToCheck);
+        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 3500));
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;

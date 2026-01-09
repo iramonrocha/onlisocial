@@ -199,6 +199,9 @@ export default defineEventHandler(async (event) => {
 
     const page = await browser.newPage()
 
+    page.setDefaultTimeout(120_000);
+    page.setDefaultNavigationTimeout(120_000);
+
     await page.setUserAgent(
         'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
         'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
@@ -239,7 +242,7 @@ export default defineEventHandler(async (event) => {
         // Digita o username
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;

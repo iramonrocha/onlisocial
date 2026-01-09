@@ -231,10 +231,10 @@ export default defineEventHandler(async (event) => {
     const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
     await page.waitForSelector(searchInputSelector);
 
-    await page.waitForSelector('div[role="dialog"] a[href^="/"] span');
+    await page.waitForSelector('div > div > div > div > span > div > a > div > div > span');
 
     const capturedUsernames = await page.$$eval(
-        'div[role="dialog"] a[href^="/"] span',
+        'div > div > div > div > span > div > a > div > div > span',
         spans =>
             spans
                 .map(s => s.textContent?.trim())

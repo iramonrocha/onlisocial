@@ -228,22 +228,37 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    // // Espera o input de pesquisa estar disponível
-    // const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
-    // await page.waitForSelector(searchInputSelector);
+    // Espera o input de pesquisa estar disponível
+    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    await page.waitForSelector(searchInputSelector);
 
-    // Captura os usernames visíveis
-    const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+    let foundUsername: string | null = null;
 
-    const capturedUsernames = await page.$$eval(
-        usernameSelector,
-        spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-    );
-    
+    for (const usernameToCheck of usernamesToCheck) {
+
+        // Digita o username
+        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+        
+                // Captura os usernames visíveis
+        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+
+        const capturedUsernames = await page.$$eval(
+            usernameSelector,
+            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        );
+
+        if (capturedUsernames.includes(usernameToCheck)) {
+            foundUsername = usernameToCheck;
+            break; // para o loop assim que encontrar
+        }
+    }
+
+    const found = Boolean(foundUsername);
+
     await browser.close()
 
     return {
-        capturedUsernames
+        found
     }
 
 });

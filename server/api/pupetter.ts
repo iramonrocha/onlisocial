@@ -227,10 +227,6 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    // // Espera o input de pesquisa estar disponível
-    // const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
-    // await page.waitForSelector(searchInputSelector);
-
     // await page.waitForSelector('div > div > div > div > span > div > a > div > div > span');
 
     // const capturedUsernames = await page.$$eval(
@@ -266,10 +262,50 @@ export default defineEventHandler(async (event) => {
 
     // const found = Boolean(foundUsername);
 
+    const getUsernamesFromModal = async () => {
+        return await page.evaluate(() => {
+            const dialog = document.querySelector('div[role="dialog"]');
+            if (!dialog) return [];
+
+            const links = Array.from(dialog.querySelectorAll('a[href^="/"]'));
+
+            return links
+                .map(a => a.getAttribute('href'))
+                .filter(href =>
+                    href &&
+                    !href.includes('/explore') &&
+                    !href.includes('/accounts') &&
+                    href.split('/').length === 3
+                )
+                .map(href => href.replace(/\//g, ''));
+        });
+    };
+
+    const collected = new Set();
+    let sameCount = 0;
+
+    while (sameCount < 3) {
+        const usernames = await getUsernamesFromModal();
+
+        usernames.forEach(u => collected.add(u));
+
+        const sizeBefore = collected.size;
+
+        const sizeAfter = collected.size;
+
+        if (sizeAfter === sizeBefore) {
+            sameCount++;
+        } else {
+            sameCount = 0;
+        }
+    }
+
+    const followingList = Array.from(collected);
+
     await browser.close()
 
     return {
-        followersModalSelector
+        followingList
     }
 
 });

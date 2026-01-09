@@ -237,6 +237,8 @@ export default defineEventHandler(async (event) => {
 
     let foundUsername: string | null = null;
 
+    return { usernamesToCheck }
+
     for (const usernameToCheck of usernamesToCheck) {
 
         // Digita o username

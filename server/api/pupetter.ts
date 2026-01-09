@@ -264,7 +264,7 @@ export default defineEventHandler(async (event) => {
 
     const getUsernamesFromModal = async () => {
         return await page.evaluate(() => {
-            const dialog = document.querySelector('div[role="dialog"]');
+            const dialog = document.querySelector('div > div > div > div > span > div > a > div > div > span"]');
             if (!dialog) return [];
 
             const links = Array.from(dialog.querySelectorAll('a[href^="/"]'));

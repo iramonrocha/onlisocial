@@ -232,14 +232,14 @@ export default defineEventHandler(async (event) => {
     await page.waitForSelector(followersModalSelector);
 
     // Espera o input de pesquisa estar disponível
-    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
     let foundUsername: string | null = null;
 
     for (const usernameToCheck of usernamesToCheck) {
 
-        // Limpa o input
+// Limpa o input
         await page.click(searchInputSelector, { clickCount: 3 });
         await page.keyboard.press('Backspace');
 
@@ -247,7 +247,7 @@ export default defineEventHandler(async (event) => {
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 3500));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
@@ -305,4 +305,4 @@ export default defineEventHandler(async (event) => {
     } else {
         return { success: false, message: "Usuário não encontrado no Instagram." };
     }
-});
+})

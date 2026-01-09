@@ -228,11 +228,11 @@ export default defineEventHandler(async (event) => {
     await page.waitForSelector(followersModalSelector);
 
     const capturedUsernames = await page.$$eval(
-        'div > div > div > div > span > div > a > div > div > span',
+        'div > div > div > span > div > a > div > div > span',
         links =>
             links
                 .map(a => a.getAttribute('href'))
-                .filter(href => href && href !== '/' && !href.includes('/explore'))
+                .filter(href => href && href !== '/')
                 .map(href => href.replace(/\//g, ''))
     );
 

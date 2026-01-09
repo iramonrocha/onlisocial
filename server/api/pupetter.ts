@@ -1,16 +1,15 @@
+import { getId } from '~/utils/createId'
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
-import AWS from 'aws-sdk'
-import axios from 'axios'
-import { getId } from '~/utils/createId'
 import { putItem } from '~/aws/dynamodb/entities/actions/putItem'
-import { Profiles } from '~/aws/dynamodb/entities/instagram/profiles'
+import { updateItem } from '~/aws/dynamodb/entities/actions/updateItem'
+import { getItem } from '~/aws/dynamodb/entities/actions/getItem'
+import { Users } from '~/aws/dynamodb/entities/users'
 import { verifyToken } from '@/utils/verifyToken'
+import { ProfilesCompleted } from '~/aws/dynamodb/entities/instagram/profiles_completed'
 import { queryUser_id } from '~/aws/dynamodb/tables/actions/queryUser_id'
 
 export default defineEventHandler(async (event) => {
-
-    const username = "rainer"
 
     const token = getCookie(event, 'token')
     if (!token) return null
@@ -184,7 +183,7 @@ export default defineEventHandler(async (event) => {
         }
         ]
 
-    const browser = await puppeteer.launch({
+const browser = await puppeteer.launch({
         executablePath: await chromium.executablePath(),
         headless: true,
         args: [
@@ -200,17 +199,14 @@ export default defineEventHandler(async (event) => {
 
     const page = await browser.newPage()
 
-    // 1️⃣ User-Agent MOBILE (antes de tudo)
-    await page.setUserAgent(
+            await page.setUserAgent(
         'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
         'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
         'Version/16.0 Mobile/15E148 Safari/604.1'
     );
+    
+    await page.setCookie(...cookies)
 
-    // 2️⃣ Cookies
-    await page.setCookie(...cookies);
-
-    // 3️⃣ Interceptação de requests
     await page.setRequestInterception(true);
     page.on('request', req => {
         const blocked = ['image', 'stylesheet', 'font', 'media', 'other'];
@@ -219,16 +215,16 @@ export default defineEventHandler(async (event) => {
             : req.continue();
     });
 
-    await page.goto(`https://instagram.com/${username}`, {
+    await page.goto(`https://instagram.com/rainer`, {
         waitUntil: "networkidle2",
     });
 
-
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/${username}/followers/"]`;
+    const followersLinkSelector = `a[href="/rainer/followers/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
+    
     // Espera a modal de seguidores abrir
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
@@ -237,38 +233,7 @@ export default defineEventHandler(async (event) => {
     const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
     await page.waitForSelector(searchInputSelector);
 
+await browser.close()
+
     return searchInputSelector
-
-    let foundUsername: string | null = null;
-
-    for (const usernameToCheck of usernamesToCheck) {
-
-        // Limpa o input
-        await page.click(searchInputSelector, { clickCount: 3 });
-        await page.keyboard.press('Backspace');
-
-        // Digita o username
-        await page.type(searchInputSelector, usernameToCheck, { delay: 50 });
-
-        // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Captura os usernames visíveis
-        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
-
-        const capturedUsernames = await page.$$eval(
-            usernameSelector,
-            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-        );
-
-        if (capturedUsernames.includes(usernameToCheck)) {
-            foundUsername = usernameToCheck;
-            break; // para o loop assim que encontrar
-        }
-    }
-
-    const found = Boolean(foundUsername);
-
-    return found
-}
-)
+});

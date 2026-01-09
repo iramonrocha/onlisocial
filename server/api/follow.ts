@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/${username}/followers/"]`;
+    const followersLinkSelector = `a[href="/${username}/following/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
@@ -247,7 +247,7 @@ export default defineEventHandler(async (event) => {
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;

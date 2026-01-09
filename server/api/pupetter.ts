@@ -10,6 +10,8 @@ import { ProfilesCompleted } from '~/aws/dynamodb/entities/instagram/profiles_co
 import { queryUser_id } from '~/aws/dynamodb/tables/actions/queryUser_id'
 
 export default defineEventHandler(async (event) => {
+    const body = await readBody(event)
+    const { username, cost_per_follower, profile_id, user_id } = body
 
     const token = getCookie(event, 'token')
     if (!token) return null
@@ -216,12 +218,12 @@ export default defineEventHandler(async (event) => {
             : req.continue();
     });
 
-    await page.goto(`https://instagram.com/rainer`, {
+    await page.goto(`https://instagram.com/${username}`, {
         waitUntil: "networkidle2",
     });
 
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/rainer/followers/"]`;
+    const followersLinkSelector = `a[href="/${username}/following/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
@@ -233,90 +235,74 @@ export default defineEventHandler(async (event) => {
     const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
-    // Digita o username
-    await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
+    let foundUsername: string | null = null;
 
-    // Aguarda o Instagram atualizar a lista
-    await new Promise(resolve => setTimeout(resolve, 4000));
+    for (const usernameToCheck of usernamesToCheck) {
 
-    // Captura os usernames visíveis
-    const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+// Limpa o input
+        await page.click(searchInputSelector, { clickCount: 3 });
+        await page.keyboard.press('Backspace');
 
-    const capturedUsernames = await page.$$eval(
-        usernameSelector,
-        spans => spans.map(s => s.textContent?.trim())
-    );
+        // Digita o username
+        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
-    // let foundUsername: string | null = null;
+        // Aguarda o Instagram atualizar a lista
+        await new Promise(resolve => setTimeout(resolve, 4000));
 
-    // for (const usernameToCheck of usernamesToCheck) {
+        // Captura os usernames visíveis
+        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
-    //     // Limpa o input
-    //     await page.click(searchInputSelector, { clickCount: 3 });
-    //     await page.keyboard.press('Backspace');
+        const capturedUsernames = await page.$$eval(
+            usernameSelector,
+            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        );
 
-    //     // Digita o username
-    //     await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+        if (capturedUsernames.includes(usernameToCheck)) {
+            foundUsername = usernameToCheck;
+            break; // para o loop assim que encontrar
+        }
+    }
 
-    //     // Aguarda o Instagram atualizar a lista
-    //     await new Promise(resolve => setTimeout(resolve, 4000));
-
-    //     // Captura os usernames visíveis
-    //     const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
-
-    //     const capturedUsernames = await page.$$eval(
-    //         usernameSelector,
-    //         spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-    //     );
-
-    //     if (capturedUsernames.includes(usernameToCheck)) {
-    //         foundUsername = usernameToCheck;
-    //         break; // para o loop assim que encontrar
-    //     }
-    // }
-
-    // const found = Boolean(foundUsername);
+    const found = Boolean(foundUsername);
 
     await browser.close()
 
-    // // Salva no banco **somente se o usuário foi encontrado**
-    // if (found) {
-    //     const userId = getId();
-    //     await putItem(ProfilesCompleted, {
-    //         id: userId,
-    //         user_id: id,
-    //         profile_id
-    //     });
+    // Salva no banco **somente se o usuário foi encontrado**
+    if (found) {
+        const userId = getId();
+        await putItem(ProfilesCompleted, {
+            id: userId,
+            user_id: id,
+            profile_id
+        });
 
-    //     // Busca o usuário que está seguindo (quem está logado)
-    //     const { Item: followerItems } = await getItem(Users, { id })
+        // Busca o usuário que está seguindo (quem está logado)
+        const { Item: followerItems } = await getItem(Users, { id })
 
-    //     const followedItemsList = await queryUser_id(user_id);
+        const followedItemsList = await queryUser_id(user_id);
 
-    //     if (!followedItemsList || followedItemsList.length === 0) {
-    //         return { success: false, message: "Perfil não encontrado" };
-    //     }
+        if (!followedItemsList || followedItemsList.length === 0) {
+            return { success: false, message: "Perfil não encontrado" };
+        }
 
-    //     const followedUser = followedItemsList[0];
+        const followedUser = followedItemsList[0];
 
-    //     const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
+        const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
 
-    //     // REMOVE pontos de quem está logado
-    //     await updateItem(Users, {
-    //         id,
-    //         points: Math.max((followerItems.points || 0) - cost_per_follower, 0),
-    //     });
+        // REMOVE pontos de quem está logado
+        await updateItem(Users, {
+            id,
+            points: Math.max((followerItems.points || 0) - cost_per_follower, 0),
+        });
 
-    //     // ADICIONA pontos para quem foi seguido
-    //     await updateItem(Users, {
-    //         id: user_id,
-    //         points: (followed.points || 0) + cost_per_follower,
-    //     });
+        // ADICIONA pontos para quem foi seguido
+        await updateItem(Users, {
+            id: user_id,
+            points: (followed.points || 0) + cost_per_follower,
+        });
 
-    //     return { success: true, message: "Perfil encontrado e salvo." };
-    // } else {
-    //     return { success: false, message: "Usuário não encontrado no Instagram." };
-    // }
-
-    return capturedUsernames
+        return { success: true, message: "Perfil encontrado e salvo." };
+    } else {
+        return { success: false, message: "Usuário não encontrado no Instagram." };
+    }
 })

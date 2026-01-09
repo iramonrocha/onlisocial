@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/${username}/followers/"]`;
+    const followersLinkSelector = `a[href="/${username}/following/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 

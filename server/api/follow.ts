@@ -244,7 +244,7 @@ export default defineEventHandler(async (event) => {
         await page.keyboard.press('Backspace');
 
         // Digita o username
-        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+        await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
         await new Promise(resolve => setTimeout(resolve, 2500));

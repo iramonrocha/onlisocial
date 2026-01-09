@@ -185,7 +185,7 @@ export default defineEventHandler(async (event) => {
 
     const browser = await puppeteer.launch({
         executablePath: await chromium.executablePath(),
-        headless: true,
+        headless: 'new',
         args: [
             ...chromium.args,
             '--disable-dev-shm-usage',
@@ -203,7 +203,7 @@ export default defineEventHandler(async (event) => {
 
     await page.setRequestInterception(true);
     page.on('request', req => {
-        const blocked = ['image', 'stylesheet', 'font', 'media', 'other'];
+        const blocked = ['stylesheet', 'font', 'media', 'other'];
         blocked.includes(req.resourceType())
             ? req.abort()
             : req.continue();
@@ -211,11 +211,13 @@ export default defineEventHandler(async (event) => {
 
     await page.goto(`https://instagram.com/${username}`, { waitUntil: 'networkidle2' })
 
-    const userData = await page.evaluate(() => {
-        const name = document.querySelector('section > div > div > span')?.innerText || ''
-        const image = document.querySelector('img')?.src || ''
-        return { name, image }
-    })
+const userData = await page.evaluate((username) => {
+    const imgs = Array.from(document.querySelectorAll('img'));
+    const profileImg = imgs.find(img => img.alt.includes(username));
+    const name = document.querySelector('section > div > div > span')?.innerText || '';
+    const image = profileImg?.src || '';
+    return { name, image };
+}, username);
 
     await browser.close()
 

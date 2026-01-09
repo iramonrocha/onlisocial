@@ -185,7 +185,7 @@ export default defineEventHandler(async (event) => {
 
     const browser = await puppeteer.launch({
         executablePath: await chromium.executablePath(),
-        headless: true,
+        headless: 'new',
         args: [
             ...chromium.args,
             '--disable-dev-shm-usage',
@@ -232,7 +232,7 @@ export default defineEventHandler(async (event) => {
 
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1800));
 
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 

@@ -220,7 +220,7 @@ export default defineEventHandler(async (event) => {
 
     const userData = await page.evaluate(() => {
         const name = document.querySelector('section > div > div > span')?.innerText || ''
-        const image = document.querySelector('img')?.src || ''
+        const image = document.querySelector('header > img')?.src || ''
         return { name, image }
     })
 

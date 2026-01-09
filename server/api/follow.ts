@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/${username}/following/"]`;
+    const followersLinkSelector = `a[href="/${username}/followers/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
@@ -231,17 +231,27 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
+    const modal = await page.$(followersModalSelector);
+
+    if (modal) {
+        return { message: 'Modal de seguidores aberta' }
+    }
+
     // Espera o input de pesquisa estar disponível
     const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
+
+    const search = await page.$(searchInputSelector);
+
+    if (search) {
+        return { message: 'Pesquisa estar disponível' }
+    }
 
     let foundUsername: string | null = null;
 
     for (const usernameToCheck of usernamesToCheck) {
 
-        await new Promise(resolve => setTimeout(resolve, 2500));
-        
-// Limpa o input
+        // Limpa o input
         await page.click(searchInputSelector, { clickCount: 3 });
         await page.keyboard.press('Backspace');
 
@@ -249,7 +259,7 @@ export default defineEventHandler(async (event) => {
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
         // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 1700));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;

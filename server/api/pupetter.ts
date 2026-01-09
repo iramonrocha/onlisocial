@@ -227,13 +227,19 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-const searchInputSelector = 'input[aria-label="Search input"]';
+    const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
-    // Digita o username
-    await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
+    let foundUsername: string | null = null;
 
-    // Captura os usernames visíveis
+    for (const usernameToCheck of usernamesToCheck) {
+
+        // Digita o username
+        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
         const capturedUsernames = await page.$$eval(
@@ -241,43 +247,17 @@ const searchInputSelector = 'input[aria-label="Search input"]';
             spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
         );
 
-    // const capturedUsernames = await page.$$eval(
-    //     'div > div > div > div > span > div > a > div > div > span',
-    //     spans =>
-    //         spans
-    //             .map(s => s.textContent?.trim())
-    //             .filter(Boolean)
-    // );
+        if (capturedUsernames.includes(usernameToCheck)) {
+            foundUsername = usernameToCheck;
+            break; // para o loop assim que encontrar
+        }
+    }
 
-    // let foundUsername: string | null = null;
-
-    // for (const usernameToCheck of usernamesToCheck) {
-
-    //     // Digita o username
-    //     await page.type(searchInputSelector, usernameToCheck);
-
-    //     await new Promise(resolve => setTimeout(resolve, 1700));
-
-    //     // Captura os usernames visíveis
-    //     const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
-
-    //     const capturedUsernames = await page.$$eval(
-    //         usernameSelector,
-    //         spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-    //     );
-
-    //     if (capturedUsernames.includes(usernameToCheck)) {
-    //         foundUsername = usernameToCheck;
-    //         break; // para o loop assim que encontrar
-    //     }
-    // }
-
-    // const found = Boolean(foundUsername);
+    const found = Boolean(foundUsername);
 
     await browser.close()
 
     return {
-        capturedUsernames
+        found
     }
-
 });

@@ -227,11 +227,19 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    // pega o HTML do modal
-const modalHTML = await page.$eval(
-  followersModalSelector,
-  el => el.innerHTML
-);
+const searchInputSelector = 'input[aria-label="Search input"]';
+    await page.waitForSelector(searchInputSelector);
+
+    // Digita o username
+    await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
+
+    // Captura os usernames visíveis
+        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+
+        const capturedUsernames = await page.$$eval(
+            usernameSelector,
+            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        );
 
     // const capturedUsernames = await page.$$eval(
     //     'div > div > div > div > span > div > a > div > div > span',
@@ -269,7 +277,7 @@ const modalHTML = await page.$eval(
     await browser.close()
 
     return {
-        modalHTML
+        capturedUsernames
     }
 
 });

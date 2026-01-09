@@ -222,8 +222,7 @@ export default defineEventHandler(async (event) => {
         waitUntil: "networkidle2",
     });
 
-    // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/rainer/followers/"]`;
+    const followersLinkSelector = `a[href="/rainer/following/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
@@ -237,14 +236,12 @@ export default defineEventHandler(async (event) => {
 
     let foundUsername: string | null = null;
 
-    return searchInputSelector
-
     for (const usernameToCheck of usernamesToCheck) {
 
         // Digita o username
-        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+        await page.type(searchInputSelector, usernameToCheck);
 
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 1700));
 
         // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;

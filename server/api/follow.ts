@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Clicando no link de seguidores
-    const followersLinkSelector = `a[href="/${username}/followers/"]`;
+    const followersLinkSelector = `a[href="/${username}/following/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
@@ -231,49 +231,55 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    const modal = await page.$(followersModalSelector);
-
-    if (modal) {
-        return { message: 'Modal de seguidores aberta' }
-    }
-
     // Espera o input de pesquisa estar disponível
     const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
-    const search = await page.$(searchInputSelector);
+    // Digita o username
+    await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
 
-    if (search) {
-        return { message: 'Pesquisa estar disponível' }
-    }
+    // Aguarda o Instagram atualizar a lista
+    await new Promise(resolve => setTimeout(resolve, 1700));
+
+    // Captura os usernames visíveis
+    const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+
+    const capturedUsernames = await page.$$eval(
+        usernameSelector,
+        spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+    );
 
     let foundUsername: string | null = null;
 
-    for (const usernameToCheck of usernamesToCheck) {
-
-        // Limpa o input
-        await page.click(searchInputSelector, { clickCount: 3 });
-        await page.keyboard.press('Backspace');
-
-        // Digita o username
-        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
-
-        // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 1700));
-
-        // Captura os usernames visíveis
-        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
-
-        const capturedUsernames = await page.$$eval(
-            usernameSelector,
-            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-        );
-
-        if (capturedUsernames.includes(usernameToCheck)) {
-            foundUsername = usernameToCheck;
-            break; // para o loop assim que encontrar
-        }
+    if (capturedUsernames.includes('rmn.roocha')) {
+        foundUsername = 'rmn.roocha';
     }
+
+    // for (const usernameToCheck of usernamesToCheck) {
+
+    //     // Limpa o input
+    //     await page.click(searchInputSelector, { clickCount: 3 });
+    //     await page.keyboard.press('Backspace');
+
+    //     // Digita o username
+    //     await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+
+    //     // Aguarda o Instagram atualizar a lista
+    //     await new Promise(resolve => setTimeout(resolve, 1700));
+
+    //     // Captura os usernames visíveis
+    //     const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+
+    //     const capturedUsernames = await page.$$eval(
+    //         usernameSelector,
+    //         spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+    //     );
+
+    //     if (capturedUsernames.includes(usernameToCheck)) {
+    //         foundUsername = usernameToCheck;
+    //         break; // para o loop assim que encontrar
+    //     }
+    // }
 
     const found = Boolean(foundUsername);
 

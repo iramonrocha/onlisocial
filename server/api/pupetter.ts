@@ -238,8 +238,10 @@ export default defineEventHandler(async (event) => {
 
         // Digita o username
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
-        
-                // Captura os usernames visíveis
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
         const capturedUsernames = await page.$$eval(

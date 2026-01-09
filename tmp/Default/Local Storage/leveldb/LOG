@@ -1,3 +1,7 @@
-2026/01/08-21:29:54.840 6d18 Reusing MANIFEST C:\Users\irami\Desktop\onlisocial\tmp\Default\Local Storage\leveldb/MANIFEST-000001
-2026/01/08-21:29:54.876 6d18 Recovering log #4
-2026/01/08-21:29:54.888 6d18 Reusing old log C:\Users\irami\Desktop\onlisocial\tmp\Default\Local Storage\leveldb/000004.log 
+2026/01/08-23:08:27.136 2410 Reusing MANIFEST C:\Users\irami\Desktop\onlisocial\tmp\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/08-23:08:27.155 2410 Recovering log #4
+2026/01/08-23:08:27.252 2410 Level-0 table #6: started
+2026/01/08-23:08:27.632 2410 Level-0 table #6: 15501 bytes OK
+2026/01/08-23:08:27.644 2410 Recovering log #6
+2026/01/08-23:08:27.888 2410 Reusing old log C:\Users\irami\Desktop\onlisocial\tmp\Default\Local Storage\leveldb/000006.log 
+2026/01/08-23:08:27.993 2410 Delete type=0 #4

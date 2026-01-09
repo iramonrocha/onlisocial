@@ -21,6 +21,8 @@
             </button>
         </div>
 
+        <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
+                
         <div class="content">
             <!-- PERFIS -->
             <div v-if="activeTab === 'profiles'" class="profiles-grid">
@@ -78,8 +80,7 @@
                             {{ u.confirming ? 'Confirmando...' : 'Confirmar' }}
                         </button>
                     </div>
-                    <Alert v-if="alert" :type="alert.type" :text="alert.message" :params="alert.params" />
-                </div>
+                    </div>
             </div>
         </div>
 
@@ -509,7 +510,7 @@ async function confirmFollow(u: FollowUser) {
         }
 
         if (res.message === 'Usuário não encontrado no Instagram.') {
-            setAlert('success', res.message)
+            setAlert('danger', res.message)
         }
 
         if (res.success) {

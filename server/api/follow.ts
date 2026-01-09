@@ -232,87 +232,77 @@ export default defineEventHandler(async (event) => {
     await page.waitForSelector(followersModalSelector);
 
     // Espera o input de pesquisa estar disponível
-    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
-    // Captura os usernames visíveis
-    const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+    let foundUsername: string | null = null;
 
-    const capturedUsernames = await page.$$eval(
-        usernameSelector,
-        spans => spans.map(s => s.textContent?.trim())
-    );
+    for (const usernameToCheck of usernamesToCheck) {
 
-    // let foundUsername: string | null = null;
+        // Limpa o input
+        await page.click(searchInputSelector, { clickCount: 3 });
+        await page.keyboard.press('Backspace');
 
-    // for (const usernameToCheck of usernamesToCheck) {
+        // Digita o username
+        await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
-    //     // Limpa o input
-    //     await page.click(searchInputSelector, { clickCount: 3 });
-    //     await page.keyboard.press('Backspace');
+        // Aguarda o Instagram atualizar a lista
+        await new Promise(resolve => setTimeout(resolve, 1700));
 
-    //     // Digita o username
-    //     await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
+        // Captura os usernames visíveis
+        const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
-    //     // Aguarda o Instagram atualizar a lista
-    //     await new Promise(resolve => setTimeout(resolve, 1500));
+        const capturedUsernames = await page.$$eval(
+            usernameSelector,
+            spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        );
 
-    //     // Captura os usernames visíveis
-    //     const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
+        if (capturedUsernames.includes(usernameToCheck)) {
+            foundUsername = usernameToCheck;
+            break; // para o loop assim que encontrar
+        }
+    }
 
-    //     const capturedUsernames = await page.$$eval(
-    //         usernameSelector,
-    //         spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
-    //     );
-
-    //     if (capturedUsernames.includes(usernameToCheck)) {
-    //         foundUsername = usernameToCheck;
-    //         break; // para o loop assim que encontrar
-    //     }
-    // }
-
-    // const found = Boolean(foundUsername);
+    const found = Boolean(foundUsername);
 
     await browser.close()
 
-    return { capturedUsernames }
+    // Salva no banco **somente se o usuário foi encontrado**
+    if (found) {
+        const userId = getId();
+        await putItem(ProfilesCompleted, {
+            id: userId,
+            user_id: id,
+            profile_id
+        });
 
-    // // Salva no banco **somente se o usuário foi encontrado**
-    // if (found) {
-    //     const userId = getId();
-    //     await putItem(ProfilesCompleted, {
-    //         id: userId,
-    //         user_id: id,
-    //         profile_id
-    //     });
+        // Busca o usuário que está seguindo (quem está logado)
+        const { Item: followerItems } = await getItem(Users, { id })
 
-    //     // Busca o usuário que está seguindo (quem está logado)
-    //     const { Item: followerItems } = await getItem(Users, { id })
+        const followedItemsList = await queryUser_id(user_id);
 
-    //     const followedItemsList = await queryUser_id(user_id);
+        if (!followedItemsList || followedItemsList.length === 0) {
+            return { success: false, message: "Perfil não encontrado" };
+        }
 
-    //     if (!followedItemsList || followedItemsList.length === 0) {
-    //         return { success: false, message: "Perfil não encontrado" };
-    //     }
+        const followedUser = followedItemsList[0];
 
-    //     const followedUser = followedItemsList[0];
+        const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
 
-    //     const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
+        // REMOVE pontos de quem está logado
+        await updateItem(Users, {
+            id,
+            points: Math.max((followerItems.points || 0) - cost_per_follower, 0),
+        });
 
-    //     // REMOVE pontos de quem está logado
-    //     await updateItem(Users, {
-    //         id,
-    //         points: Math.max((followerItems.points || 0) - cost_per_follower, 0),
-    //     });
+        // ADICIONA pontos para quem foi seguido
+        await updateItem(Users, {
+            id: user_id,
+            points: (followed.points || 0) + cost_per_follower,
+        });
 
-    //     // ADICIONA pontos para quem foi seguido
-    //     await updateItem(Users, {
-    //         id: user_id,
-    //         points: (followed.points || 0) + cost_per_follower,
-    //     });
-
-    //     return { success: true, message: "Perfil encontrado e salvo." };
-    // } else {
-    //     return { success: false, message: "Usuário não encontrado no Instagram." };
-    // }
-});
+        return { success: true, message: "Perfil encontrado e salvo." };
+    } else {
+        return { success: false, message: "Usuário não encontrado no Instagram." };
+    }
+})

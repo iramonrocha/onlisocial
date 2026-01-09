@@ -228,17 +228,22 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    // Espera o input de pesquisa estar disponível
-    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
-    await page.waitForSelector(searchInputSelector);
+    // // Espera o input de pesquisa estar disponível
+    // const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    // await page.waitForSelector(searchInputSelector);
 
-    const titulo = await page.title()
+    // Captura os usernames visíveis
+    const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
+    const capturedUsernames = await page.$$eval(
+        usernameSelector,
+        spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+    );
+    
     await browser.close()
 
     return {
-        titulo,
-        searchInputSelector
+        capturedUsernames
     }
 
 });

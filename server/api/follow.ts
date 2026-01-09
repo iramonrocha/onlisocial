@@ -235,18 +235,18 @@ export default defineEventHandler(async (event) => {
     const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
-    // Digita o username
-    await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
+    // // Digita o username
+    // await page.type(searchInputSelector, 'rmn.roocha', { delay: 100 });
 
-    // Aguarda o Instagram atualizar a lista
-    await new Promise(resolve => setTimeout(resolve, 1700));
+    // // Aguarda o Instagram atualizar a lista
+    // await new Promise(resolve => setTimeout(resolve, 1700));
 
     // Captura os usernames visíveis
     const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
     const capturedUsernames = await page.$$eval(
         usernameSelector,
-        spans => spans.map(s => s.textContent?.trim()).filter(Boolean)
+        spans => spans.map(s => s.textContent?.trim())
     );
 
     let foundUsername: string | null = null;
@@ -321,6 +321,6 @@ export default defineEventHandler(async (event) => {
 
         return { success: true, message: "Perfil encontrado e salvo." };
     } else {
-        return { success: false, message: "Usuário não encontrado no Instagram." };
+        return { success: false, message: capturedUsernames };
     }
 })

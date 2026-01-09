@@ -199,13 +199,6 @@ export default defineEventHandler(async (event) => {
 
     const page = await browser.newPage()
 
-    // 1️⃣ User-Agent MOBILE (antes de tudo)
-    await page.setUserAgent(
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) ' +
-        'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
-        'Version/16.0 Mobile/15E148 Safari/604.1'
-    );
-
     await page.setCookie(...cookies)
 
     await page.setRequestInterception(true);
@@ -220,7 +213,7 @@ export default defineEventHandler(async (event) => {
 
     const userData = await page.evaluate(() => {
         const name = document.querySelector('section > div > div > span')?.innerText || ''
-        const image = document.querySelector('header > img')?.src || ''
+        const image = document.querySelector('img')?.src || ''
         return { name, image }
     })
 

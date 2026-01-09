@@ -237,7 +237,7 @@ export default defineEventHandler(async (event) => {
 
     let foundUsername: string | null = null;
 
-    return { usernamesToCheck }
+    return searchInputSelector
 
     for (const usernameToCheck of usernamesToCheck) {
 

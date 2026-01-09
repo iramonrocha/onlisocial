@@ -21,14 +21,12 @@ export default defineEventHandler(async (event) => {
 
     const { id } = decoded
 
-    // busca todos os profiles que pertencem ao usuário logado
     const profiles = await queryUser_id(id)
 
     if (!profiles || profiles.length === 0) {
         return { success: false, message: 'Nenhum profile encontrado para este usuário.' }
     }
 
-    // extrai apenas os usernames
     const usernamesToCheck = profiles.map(p => p.username)
 
     const cookies =
@@ -215,16 +213,13 @@ export default defineEventHandler(async (event) => {
         waitUntil: "networkidle2",
     });
 
-    // Clicando no link de seguidores
     const followersLinkSelector = `a[href="/${username}/followers/"]`;
     await page.waitForSelector(followersLinkSelector);
     await page.click(followersLinkSelector);
 
-    // Espera a modal de seguidores abrir
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
-    // Espera o input de pesquisa estar disponível
     const searchInputSelector = 'input[aria-label="Search input"]';
     await page.waitForSelector(searchInputSelector);
 
@@ -232,17 +227,13 @@ export default defineEventHandler(async (event) => {
 
     for (const usernameToCheck of usernamesToCheck) {
 
-        // Limpa o input
         await page.click(searchInputSelector, { clickCount: 3 });
         await page.keyboard.press('Backspace');
 
-        // Digita o username
         await page.type(searchInputSelector, usernameToCheck, { delay: 100 });
 
-        // Aguarda o Instagram atualizar a lista
-        await new Promise(resolve => setTimeout(resolve, 1700));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Captura os usernames visíveis
         const usernameSelector = `div > div > div > div > span > div > a > div > div > span`;
 
         const capturedUsernames = await page.$$eval(
@@ -252,7 +243,7 @@ export default defineEventHandler(async (event) => {
 
         if (capturedUsernames.includes(usernameToCheck)) {
             foundUsername = usernameToCheck;
-            break; // para o loop assim que encontrar
+            break;
         }
     }
 
@@ -260,7 +251,6 @@ export default defineEventHandler(async (event) => {
 
     await browser.close()
 
-    // Salva no banco **somente se o usuário foi encontrado**
     if (found) {
         const userId = getId();
         await putItem(ProfilesCompleted, {
@@ -269,7 +259,6 @@ export default defineEventHandler(async (event) => {
             profile_id
         });
 
-        // Busca o usuário que está seguindo (quem está logado)
         const { Item: followerItems } = await getItem(Users, { id })
 
         const followedItemsList = await queryUser_id(user_id);
@@ -282,16 +271,14 @@ export default defineEventHandler(async (event) => {
 
         const { Item: followed } = await getItem(Users, { id: followedUser.user_id })
 
-        // REMOVE pontos de quem está logado
         await updateItem(Users, {
             id,
-            points: Math.max((followerItems.points || 0) - cost_per_follower, 0),
+            points: (followerItems.points || 0) + cost_per_follower,
         });
 
-        // ADICIONA pontos para quem foi seguido
         await updateItem(Users, {
             id: user_id,
-            points: (followed.points || 0) + cost_per_follower,
+            points: Math.max((followed.points) - cost_per_follower, 0),
         });
 
         return { success: true, message: "Perfil encontrado e salvo." };

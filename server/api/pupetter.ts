@@ -1,5 +1,5 @@
 import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import AWS from 'aws-sdk'
 import axios from 'axios'
 import { getId } from '~/utils/createId'
@@ -236,6 +236,8 @@ export default defineEventHandler(async (event) => {
     // Espera o input de pesquisa estar disponível
     const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
     await page.waitForSelector(searchInputSelector);
+
+    return searchInputSelector
 
     let foundUsername: string | null = null;
 

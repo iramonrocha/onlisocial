@@ -228,19 +228,17 @@ export default defineEventHandler(async (event) => {
     const followersModalSelector = 'div[role="dialog"]';
     await page.waitForSelector(followersModalSelector);
 
+    // Espera o input de pesquisa estar disponível
+    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
+    await page.waitForSelector(searchInputSelector);
+
     const titulo = await page.title()
 
     await browser.close()
 
     return {
         titulo,
+        searchInputSelector
     }
 
-    // Espera o input de pesquisa estar disponível
-    const searchInputSelector = 'input[aria-label="Entrada da pesquisa"]';
-    await page.waitForSelector(searchInputSelector);
-
-    await browser.close()
-
-    return searchInputSelector
 });
